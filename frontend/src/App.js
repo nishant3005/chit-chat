@@ -1,41 +1,41 @@
-import { useState, useEffect } from "react";
-import socket from "./socket";
-import toast, { Toaster } from "react-hot-toast";
-import ScrollToBottom from "react-scroll-to-bottom";
-import { css } from "@emotion/css";
+import { useState, useEffect } from 'react';
+import socket from './socket';
+import toast, { Toaster } from 'react-hot-toast';
+import ScrollToBottom from 'react-scroll-to-bottom';
+import { css } from '@emotion/css';
 
 const ROOT_CSS = css({
   height: 650,
-  width: "100%",
+  width: '100%',
 });
 
 function App() {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState('');
   const [connected, setConnected] = useState(false);
   const [message, setMessage] = useState({
-    type: "",
-    data_rec: "",
+    type: '',
+    data_rec: '',
   });
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
-  const [typing, setTyping] = useState("");
+  const [typing, setTyping] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [textEnable, setTextEnable] = useState(true);
   const [textEnablePrivate, setTextEnablePrivate] = useState(true);
 
   const [privateMessage, setPrivateMessage] = useState({
-    type: "",
-    data_recc: "",
+    type: '',
+    data_recc: '',
   });
 
   // User joined and message
   useEffect(() => {
-    socket.on("user joined", (msg) => {
-      console.log("user joined message", msg);
+    socket.on('user joined', (msg) => {
+      console.log('user joined message', msg);
     });
 
-    socket.on("message", (data) => {
-      console.log("message", message);
+    socket.on('message', (data) => {
+      console.log('message', message);
 
       setMessages((previousMessages) => [
         ...previousMessages,
@@ -49,14 +49,14 @@ function App() {
     });
 
     return () => {
-      socket.off("user joined");
-      socket.off("message");
+      socket.off('user joined');
+      socket.off('message');
     };
   }, []);
 
   // User connected and show all users
   useEffect(() => {
-    socket.on("user connected", (user) => {
+    socket.on('user connected', (user) => {
       user.connected = true;
       user.messages = [];
       user.hasNewMessages = false;
@@ -64,7 +64,7 @@ function App() {
       toast.success(`${user.username} joined`);
     });
 
-    socket.on("users", (users) => {
+    socket.on('users', (users) => {
       // setUsers(users);
       users.forEach((user) => {
         user.self = user.userID === socket.id;
@@ -72,7 +72,7 @@ function App() {
         user.messages = [];
         user.hasNewMessages = false;
       });
-   
+
       const sorted = users.sort((a, b) => {
         if (a.self) return -1;
         if (b.self) return 1;
@@ -83,20 +83,20 @@ function App() {
       setUsers(sorted);
     });
 
-    socket.on("username taken", () => {
-      toast.error("Username taken");
+    socket.on('username taken', () => {
+      toast.error('Username taken');
     });
 
     return () => {
-      socket.off("users");
-      socket.off("user connected");
-      socket.off("username taken");
+      socket.off('users');
+      socket.off('user connected');
+      socket.off('username taken');
     };
   }, [socket]);
 
   // User disconnected
   useEffect(() => {
-    socket.on("user disconnected", (id) => {
+    socket.on('user disconnected', (id) => {
       let allUsers = users;
 
       let index = allUsers.findIndex((el) => el.userID === id);
@@ -109,28 +109,28 @@ function App() {
     });
 
     return () => {
-      socket.off("user disconnected");
+      socket.off('user disconnected');
     };
   }, [users, socket]);
 
   // Typing
   useEffect(() => {
-    socket.on("typing", (data) => {
+    socket.on('typing', (data) => {
       setTyping(data);
       setTimeout(() => {
-        setTyping("");
+        setTyping('');
       }, 1000);
     });
 
     return () => {
-      socket.off("typing");
+      socket.off('typing');
     };
   }, []);
 
   // Private message
   useEffect(() => {
-    socket.on("private message", ({ mm, from }) => {
-      console.log("message > ", message, "from > ", from);
+    socket.on('private message', ({ mm, from }) => {
+      console.log('message > ', message, 'from > ', from);
       const allUsers = users;
       let index = allUsers.findIndex((u) => u.userID === from);
       let foundUser = allUsers[index];
@@ -142,11 +142,8 @@ function App() {
       });
 
       if (foundUser) {
-     
         if (selectedUser) {
-      
           if (foundUser.userID !== selectedUser.userID) {
-          
             foundUser.hasNewMessages = true;
           }
         } else {
@@ -159,7 +156,7 @@ function App() {
     });
 
     return () => {
-      socket.off("private message");
+      socket.off('private message');
     };
   }, [users]);
 
@@ -168,28 +165,28 @@ function App() {
     socket.auth = { username };
     socket.connect();
     setConnected(true);
-     console.log(socket.auth);
-     console.log("socket.connected", socket);
+    console.log(socket.auth);
+    console.log('socket.connected', socket);
   };
 
   const handleMessage = (e) => {
     let t;
-    if (textEnable == true) t = "text";
-    else t = "im";
+    if (textEnable == true) t = 'text';
+    else t = 'im';
 
     console.log(message);
     e.preventDefault();
-    socket.emit("message", {
+    socket.emit('message', {
       id: Date.now(),
       name: username,
       m: { type: t, data_rec: message.data_rec },
     });
-    setMessage({ type: "", data_rec: "" });
+    setMessage({ type: '', data_rec: '' });
     // console.log("Heeeee")
   };
 
   if (message.data_rec) {
-    socket.emit("typing", username);
+    socket.emit('typing', username);
   }
 
   const handleUsernameClick = (user) => {
@@ -233,13 +230,13 @@ function App() {
 
   const handlePrivateMessage = (e) => {
     let tt;
-    if (textEnablePrivate == true) tt = "text";
-    else tt = "im";
+    if (textEnablePrivate == true) tt = 'text';
+    else tt = 'im';
 
     e.preventDefault();
 
     if (selectedUser) {
-      socket.emit("private message", {
+      socket.emit('private message', {
         mm: { type: tt, data_rec_private: privateMessage.data_recc },
         to: selectedUser.userID,
       });
@@ -253,7 +250,7 @@ function App() {
       });
       console.log(updated);
       setSelectedUser(updated);
-      setPrivateMessage({ type: "", data_recc: "" });
+      setPrivateMessage({ type: '', data_recc: '' });
     }
   };
 
@@ -261,7 +258,7 @@ function App() {
     <div className="container-fluid">
       <Toaster />
       <div className="row bg-primary text-center">
-        <h1 className="fw-bold pt-2 text-light">WEB-CHAT</h1>
+        <h1 className="fw-bold pt-2 text-light">chit-chat</h1>
         <br />
       </div>
 
@@ -298,12 +295,11 @@ function App() {
                 onClick={() => handleUsernameClick(user)}
                 style={{
                   textDecoration:
-                    selectedUser?.userID == user.userID && "underline",
-                  cursor: !user.self && "pointer",
+                    selectedUser?.userID == user.userID && 'underline',
+                  cursor: !user.self && 'pointer',
                 }}
               >
-                {user.username}{" "}
-                {user.self && "(yourself)"}{" "}
+                {user.username} {user.self && '(yourself)'}{' '}
                 {user.connected ? (
                   <span className="online-dot"></span>
                 ) : (
@@ -331,7 +327,7 @@ function App() {
                 checked={!textEnable}
                 onChange={(e) => {
                   setTextEnable(!e.target.checked);
-                  setMessage({ type: "", data_rec: "" });
+                  setMessage({ type: '', data_rec: '' });
                 }}
               />
               <label class="form-check-label" htmlFor="exampleRadios1">
@@ -348,7 +344,7 @@ function App() {
                 checked={textEnable}
                 onChange={(e) => {
                   setTextEnable(e.target.checked);
-                  setMessage({ type: "", data_rec: "" });
+                  setMessage({ type: '', data_rec: '' });
                 }}
               />
               <label class="form-check-label" for="exampleRadios2">
@@ -366,7 +362,7 @@ function App() {
                     }
                     placeholder="Type your message (public)"
                     className="form-control"
-                    type={textEnable === false ? "hidden" : ""}
+                    type={textEnable === false ? 'hidden' : ''}
                   />
 
                   {!textEnable && (
@@ -396,9 +392,8 @@ function App() {
               <ScrollToBottom className={ROOT_CSS}>
                 {messages.map((m) => (
                   <div className="alert alert-secondary" key={m.id}>
-                    {m.name} -{" "}
-                    {m.type == "im" && <img src={m.message} />}
-                    {m.type == "text" && m.message}
+                    {m.name} - {m.type == 'im' && <img src={m.message} />}
+                    {m.type == 'text' && m.message}
                   </div>
                 ))}
               </ScrollToBottom>
@@ -421,7 +416,7 @@ function App() {
                 checked={!textEnablePrivate}
                 onChange={(e) => {
                   setTextEnablePrivate(!e.target.checked);
-                  setPrivateMessage({ type: "", data_recc: "" });
+                  setPrivateMessage({ type: '', data_recc: '' });
                 }}
               />
               <label class="form-check-label" for="exampleRadios11">
@@ -438,7 +433,7 @@ function App() {
                 checked={textEnablePrivate}
                 onChange={(e) => {
                   setTextEnablePrivate(e.target.checked);
-                  setPrivateMessage({ type: "", data_recc: "" });
+                  setPrivateMessage({ type: '', data_recc: '' });
                 }}
               />
               <label class="form-check-label" for="exampleRadios22">
@@ -459,7 +454,7 @@ function App() {
                     }
                     placeholder="Type your message (private)"
                     className="form-control"
-                    type={textEnablePrivate === false ? "hidden" : ""}
+                    type={textEnablePrivate === false ? 'hidden' : ''}
                   />
                 </div>
 
@@ -491,13 +486,11 @@ function App() {
                   selectedUser.messages &&
                   selectedUser.messages.map((msg, index) => (
                     <div key={index} className="alert alert-secondary">
-                      {msg.fromSelf
-                        ? "(yourself)"
-                        : selectedUser.username}{" "}
-                      {" - "}
+                      {msg.fromSelf ? '(yourself)' : selectedUser.username}{' '}
+                      {' - '}
                       {/* {msg.message} */}
-                      {msg.type == "im" && <img src={msg.message} />}
-                      {msg.type == "text" && msg.message}
+                      {msg.type == 'im' && <img src={msg.message} />}
+                      {msg.type == 'text' && msg.message}
                     </div>
                   ))}
               </ScrollToBottom>
